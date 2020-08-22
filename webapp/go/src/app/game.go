@@ -393,6 +393,7 @@ func getStatus(roomName string) (*GameStatus, error) {
 	return status, err
 }
 
+var thousand = big.NewInt(1000)
 func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyings []Buying) (*GameStatus, error) {
 	var (
 		// 1ミリ秒に生産できる椅子の単位をミリ椅子とする
@@ -420,7 +421,7 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 	for _, a := range addings {
 		// adding は adding.time に isu を増加させる
 		if a.Time <= currentTime {
-			totalMilliIsu.Add(totalMilliIsu, new(big.Int).Mul(str2big(a.Isu), big.NewInt(1000)))
+			totalMilliIsu.Add(totalMilliIsu, new(big.Int).Mul(str2big(a.Isu), thousand))
 		} else {
 			addingAt[a.Time] = a
 		}
@@ -430,7 +431,7 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 		// buying は 即座に isu を消費し buying.time からアイテムの効果を発揮する
 		itemBought[b.ItemID]++
 		m := mItems[b.ItemID]
-		totalMilliIsu.Sub(totalMilliIsu, new(big.Int).Mul(m.GetPrice(b.Ordinal), big.NewInt(1000)))
+		totalMilliIsu.Sub(totalMilliIsu, new(big.Int).Mul(m.GetPrice(b.Ordinal), thousand))
 
 		if b.Time <= currentTime {
 			itemBuilt[b.ItemID]++
@@ -448,7 +449,7 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 		itemBuilt0[m.ItemID] = itemBuilt[m.ItemID]
 		price := m.GetPrice(itemBought[m.ItemID] + 1)
 		itemPrice[m.ItemID] = price
-		if 0 <= totalMilliIsu.Cmp(new(big.Int).Mul(price, big.NewInt(1000))) {
+		if 0 <= totalMilliIsu.Cmp(new(big.Int).Mul(price, thousand)) {
 			itemOnSale[m.ItemID] = 0 // 0 は 時刻 currentTime で購入可能であることを表す
 		}
 	}
@@ -461,6 +462,8 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 		},
 	}
 
+
+	var itemId = 1
 	// currentTime から 1000 ミリ秒先までシミュレーションする
 	for t := currentTime + 1; t <= currentTime+1000; t++ {
 		totalMilliIsu.Add(totalMilliIsu, totalPower)
@@ -469,7 +472,7 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 		// 時刻 t で発生する adding を計算する
 		if a, ok := addingAt[t]; ok {
 			updated = true
-			totalMilliIsu.Add(totalMilliIsu, new(big.Int).Mul(str2big(a.Isu), big.NewInt(1000)))
+			totalMilliIsu.Add(totalMilliIsu, new(big.Int).Mul(str2big(a.Isu), thousand))
 		}
 
 		// 時刻 t で発生する buying を計算する
@@ -502,12 +505,14 @@ func calcStatus(currentTime int64, mItems map[int]mItem, addings []Adding, buyin
 		}
 
 		// 時刻 t で購入可能になったアイテムを記録する
-		for itemID := range mItems {
-			if _, ok := itemOnSale[itemID]; ok {
+		for ; itemId <= 13; itemId++ {
+			if _, ok := itemOnSale[itemId]; ok {
 				continue
 			}
-			if 0 <= totalMilliIsu.Cmp(new(big.Int).Mul(itemPrice[itemID], big.NewInt(1000))) {
-				itemOnSale[itemID] = t
+			if 0 <= totalMilliIsu.Cmp(new(big.Int).Mul(itemPrice[itemId], thousand)) {
+				itemOnSale[itemId] = t
+			} else {
+				break
 			}
 		}
 	}
