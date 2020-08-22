@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
+	_ "net/http/pprof"
 )
 
 var (
@@ -103,6 +104,10 @@ func main() {
 	r.HandleFunc("/ws/", wsGameHandler)
 	r.HandleFunc("/ws/{room_name}", wsGameHandler)
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("../public/")))
+
+	go func() {
+		log.Println(http.ListenAndServe(":6060", nil))
+	}()
 
 	log.Fatal(http.ListenAndServe(":5000", handlers.LoggingHandler(os.Stderr, r)))
 }

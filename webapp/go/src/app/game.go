@@ -11,6 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
+	_ "net/http/pprof"
 )
 
 type GameRequest struct {
