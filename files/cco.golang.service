@@ -2,9 +2,9 @@
 Description = isucon7final main application in golang
 
 [Service]
-WorkingDirectory=/home/ubuntu/webapp/go/
-EnvironmentFile=/home/ubuntu/env.sh
-ExecStart = /home/ubuntu/webapp/go/app
+WorkingDirectory=/home/ubuntu/isucon7-final/webapp/go/
+EnvironmentFile=/home/ubuntu/isucon7-final/env.sh
+ExecStart = /home/ubuntu/isucon7-final/webapp/go/app
 
 Restart   = always
 Type      = simple
